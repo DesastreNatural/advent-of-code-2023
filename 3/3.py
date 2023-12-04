@@ -43,22 +43,52 @@ def is_adjacent_to_symbol(coordinate,grid):
         adjacents = adjacents + generate_valid_checkable_positions(x,yv,grid)
     return any([is_symbol(grid[d[0]][d[1]]) for d in adjacents])
 
+def search_for_gear_symbol(g):
+    res = []
+    for i in range(len(g)):
+        for j in range(len(g[i])):
+            if g[i][j] == '*':
+                res.append([i,j])
+    return res
+
+def rebuild_from_coordinate(x,y,grid):
+    #(x,y,run,number)
+    nx,ny=x,y
+    while grid[nx][ny].isdigit():
+        ny-=1
+    ny+=1
+    run=0
+    _t=""
+    while ny+run < len(grid[0]):
+        if (grid[nx][ny+run].isdigit()):
+            _t += grid[nx][ny+run]
+            run+=1
+        else:
+            break
+    return (nx,ny,run,_t)
+
+def get_symbol_adjacencies(x,y,grid):
+    valid_positions = generate_valid_checkable_positions(x,y,grid)
+    with_digits = [i for i in valid_positions if grid[i[0]][i[1]].isdigit()]
+    every_adjacent_number_with_possible_duplicates = [rebuild_from_coordinate(i[0],i[1],grid) for i in with_digits]
+    return [t for t in (set(tuple(i) for i in every_adjacent_number_with_possible_duplicates))]
+
 if __name__ == '__main__':
     import os
     path = os.path.join(os.path.dirname(__file__),"input")
     with open(path,"r") as inp:
         grid = []
-        out = []
         for i in inp.readlines():
             grid.append(i.replace("\n",""))
-            out.append(list(i))
         m = get_map_of_numbers(grid)
         res = 0
         data = []
         for i in m:
             if is_adjacent_to_symbol(i,grid):
-                [x,y,run,number] = i
-                for yv in range(y,y+run):
-                    out[x][yv] = "X"
                 res+=i[3]
         print("Part 1 solution is:", res)
+        gmap = search_for_gear_symbol(grid)
+        adjacensies = [get_symbol_adjacencies(gear_symbol[0],gear_symbol[1],grid) for gear_symbol in gmap]
+        only_coupled = [d for d in adjacensies if len(d) == 2]
+        gear_ratios = [int(d[0][3]) * int(d[1][3]) for d in only_coupled]
+        print("Part 2 solution is:", sum(gear_ratios))
