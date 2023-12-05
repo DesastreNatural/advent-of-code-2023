@@ -20,11 +20,21 @@ def triplets_to_function(triplets,in_value):
             return (in_value - i[1]) + i[0]
     return in_value
 
-# def triplets_to_function_from_range(triplets,in_value_range):
-#     for i in triplets:
-#         if (in_value >= i[1]) and (in_value < (i[1]+i[2])):
-#             return (in_value - i[1]) + i[0]
-#     return in_value
+def apply_triplet_to_range(triplet,r):
+    (start,end) = r
+    (dest,source,l) = triplet
+    range_from_triplet = (source,source + l)
+    intersection = (max(r[0],range_from_triplet[0]), min(r[-1],range_from_triplet[-1]))
+    res = [(intersection[0]+(dest-source),intersection[1]+(dest-source))] if len(range(intersection[0],intersection[1])) != 0 else []
+
+def apply_triplets_to_range(triplets,r):
+    res = []
+    for triplet in triplets:
+        print("r:",r)
+        print("triplet:",triplet)
+        print(apply_triplet_to_range(triplet,r))
+        res += apply_triplet_to_range(triplet,r)
+    return res
 
 def get_seed_location_from_almanac(almanac,seed):
     soil = triplets_to_function(almanac['seed-to-soil'],seed)
@@ -42,5 +52,9 @@ if __name__ == '__main__':
         lines = [i.replace("\n","") for i in inp.readlines()]
         (seeds,almanac) = parse_almanac(lines)
         print("Part 1 solution is:", min([get_seed_location_from_almanac(almanac,i) for i in seeds]))
-        seed_ranges = (list(zip([seeds[i] for i in range(len(seeds)) if i % 2 == 0],[seeds[i] for i in range(len(seeds)) if i % 2 != 0])))
+        s_ranges = (list(zip([seeds[i] for i in range(len(seeds)) if i % 2 == 0],[seeds[i] for i in range(len(seeds)) if i % 2 != 0])))
+        #range --> [start,end[
+        seeds_ranges = [(i[0],i[0]+i[1]) for i in s_ranges]
+        print(seeds_ranges)
+        print(apply_triplets_to_range(almanac['seed-to-soil'],seeds_ranges[0]))
         #print("Part 2 solution is:", min([get_seed_location_from_almanac(almanac,i) for i in seeds]))
